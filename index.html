@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot and MCQ Generator</title>
+</head>
+<body>
+    <h1>Chatbot and MCQ Generator</h1>
+
+    <!-- Chatbot Section -->
+    <div id="chat-container">
+        <h2>Chatbot</h2>
+        <textarea id="userInput" placeholder="Type your message..." rows="4" cols="50"></textarea>
+        <button id="sendButton">Send</button>
+        <div id="chatOutput"></div>
+    </div>
+
+    <!-- MCQ Generator Section -->
+    <div id="mcq-container">
+        <h2>MCQ Generator</h2>
+        <textarea id="mcqInputText" placeholder="Enter text for MCQ generation..." rows="4" cols="50"></textarea>
+        <input type="number" id="mcqNumQuestions" placeholder="Number of questions" min="1">
+        <button id="generateMCQButton">Generate MCQs</button>
+        <div id="mcqOutput"></div>
+    </div>
+
+    <script>
+        // Chatbot functionality
+        document.getElementById("sendButton").onclick = async () => {
+            const userInput = document.getElementById("userInput").value;
+
+            const response = await fetch('http://localhost:8000/chat', { // API Gateway URL for chatbot
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: userInput }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("chatOutput").innerHTML += `<div>User: ${userInput}</div><div>Bot: ${data.response}</div>`;
+                document.getElementById("userInput").value = ''; // Clear input field after sending
+            } else {
+                console.error('Error:', response.statusText);
+                document.getElementById("chatOutput").innerHTML += `<div>Error communicating with the server.</div>`;
+            }
+        };
+
+        // MCQ Generator functionality
+        document.getElementById("generateMCQButton").onclick = async () => {
+            const mcqInputText = document.getElementById("mcqInputText").value;
+            const mcqNumQuestions = parseInt(document.getElementById("mcqNumQuestions").value);
+
+            const response = await fetch('http://localhost:8000/generate-mcqs', { // API Gateway URL for MCQ generator
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: mcqInputText, num_questions: mcqNumQuestions }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("mcqOutput").innerHTML = `<pre>${data.mcqs}</pre>`;
+            } else {
+                console.error('Error:', response.statusText);
+                document.getElementById("mcqOutput").innerHTML = `<div>Error generating MCQs.</div>`;
+            }
+        };
+    </script>
+</body>
+</html>
